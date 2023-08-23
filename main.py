@@ -72,8 +72,7 @@ async def send_welcome(message: types.Message):
         f"- Узнать где вы или же найти нужный кабинет\n"
         f"- Рабочий учебный план ШИТиИ\n"
         f"- Юзать ChatGPT в телеграме!\n"
-        f"- Оставить жалобу/предложения Деканату или OSIT\n\n\n"
-        f"@ncglx TOP"
+        f"- Оставить жалобу/предложения Деканату или OSIT\n"
     )
 
     await asyncio.sleep(1)
