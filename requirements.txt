@@ -2,3 +2,4 @@ openai
 aiogram
 python-dotenv
 pymongo
+aiocron

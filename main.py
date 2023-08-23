@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 
+import aiocron
 import openai
 import pymongo
 from aiogram import Bot, Dispatcher, types
@@ -21,6 +22,9 @@ client = pymongo.MongoClient(MONGO_URI)
 db = client["Feedbacks"]  # замените на название вашей базы данных
 feedback_collection = db["feedback"]
 
+db1 = client["telegram_bot_db"]  # Выберите базу данных
+users_collection = db1["users"]
+
 API_TOKEN = os.getenv("API_TOKEN")
 # Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
@@ -33,6 +37,20 @@ main_keyboard.row("Где Я?🫣", "Найти🔍", "ChatGPT🤖")
 main_keyboard.add("Жалобы/Предложения📥")
 # Global dictionary to store user states
 USER_STATES = {}
+
+
+def add_user(user_id):
+    user = {"_id": user_id}
+    try:
+        users_collection.insert_one(user)
+    except:
+        # Если пользователь уже существует, игнорируем ошибку
+        pass
+
+
+# Функция для получения всех пользователей
+def get_all_users():
+    return [user["_id"] for user in users_collection.find({}, {"_id": 1})]
 
 
 def send_main_keyboard(user_id, message="Выберите опцию:"):
@@ -61,8 +79,22 @@ async def ask_openai(question):
     return response.choices[0].message["content"].strip()
 
 
+@aiocron.crontab("0 9 * * *")  # Это означает каждый день в 23:02
+async def send_daily_quote():
+    # Вам нужно получить список всех пользователей из вашей базы данных
+    users = get_all_users()
+
+    # Генерируем мотивационную цитату с помощью OpenAI
+    prompt = "Сначала пожелай доброго утро от лица бота GUIDeon. Потом напиши мотивационную цитат на 100 символов"
+    response = await ask_openai(prompt)
+
+    for user_id in users:
+        await bot.send_message(user_id, response)
+
+
 @dp.message_handler(commands=["start"])
 async def send_welcome(message: types.Message):
+    add_user(message.from_user.id)
     first_name = message.from_user.first_name
     welcome_msg = (
         f"Привет, {first_name}! \n\n"
@@ -75,7 +107,6 @@ async def send_welcome(message: types.Message):
         f"- Оставить жалобу/предложения Деканату или OSIT\n"
     )
 
-    await asyncio.sleep(1)
     await bot.send_message(
         message.from_user.id, welcome_msg, reply_markup=main_keyboard
     )
@@ -541,9 +572,15 @@ async def handle_room_number(message: types.Message):
     USER_STATES[message.from_user.id] = None
 
 
+chatgpt_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+chatgpt_keyboard.row("Назад")
+
+
 @dp.message_handler(lambda message: message.text == "ChatGPT🤖")
 async def handle_chatgpt(message: types.Message):
-    await bot.send_message(message.from_user.id, "Задайте свой вопрос:")
+    await bot.send_message(
+        message.from_user.id, "Задайте свой вопрос:", reply_markup=chatgpt_keyboard
+    )
     USER_STATES[message.from_user.id] = "waiting_for_openai_question"
 
 
@@ -552,8 +589,24 @@ async def handle_chatgpt(message: types.Message):
     == "waiting_for_openai_question"
 )
 async def handle_openai_question(message: types.Message):
+    await bot.send_message(
+        message.from_user.id,
+        "Ваш запрос принят. Пошу ожидайте это займет какое-то время",
+    )
     response = await ask_openai(message.text)
     await bot.send_message(message.from_user.id, response)
+
+
+@dp.message_handler(
+    lambda message: message.text == "Назад"
+    and USER_STATES.get(message.from_user.id) == "waiting_for_openai_question"
+)
+async def handle_back_from_chatgpt(message: types.Message):
+    await bot.send_message(
+        message.from_user.id,
+        "Вы вернулись назад.",
+        reply_markup=main_keyboard,  # 'keyboard' это ваша основная клавиатура
+    )
     USER_STATES[message.from_user.id] = None
 
 
