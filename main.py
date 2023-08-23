@@ -7,22 +7,21 @@ import pymongo
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils import executor
-from dotenv import config
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
-MONGO_URI = config("MONGO_URI")
+MONGO_URI = os.getenv("MONGO_URI")
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 client = pymongo.MongoClient(MONGO_URI)
 db = client["Feedbacks"]  # замените на название вашей базы данных
 feedback_collection = db["feedback"]
 
-API_TOKEN = os.environ.get("API_TOKEN")
+API_TOKEN = os.getenv("API_TOKEN")
 # Initialize bot and dispatcher
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
