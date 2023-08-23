@@ -7,7 +7,7 @@ import pymongo
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils import executor
-from decouple import config
+from dotenv import config
 from dotenv import load_dotenv
 
 load_dotenv()
