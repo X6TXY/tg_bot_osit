@@ -591,7 +591,7 @@ async def handle_chatgpt(message: types.Message):
 async def handle_openai_question(message: types.Message):
     await bot.send_message(
         message.from_user.id,
-        "Ваш запрос принят. Пошу ожидайте это займет какое-то время",
+        "Ваш запрос принят. Прошу ожидайте это займет какое-то время",
     )
     response = await ask_openai(message.text)
     await bot.send_message(message.from_user.id, response)
