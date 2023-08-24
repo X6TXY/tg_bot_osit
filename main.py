@@ -37,6 +37,7 @@ main_keyboard.row("Где Я?🫣", "Найти🔍", "ChatGPT🤖")
 main_keyboard.add("Жалобы/Предложения📥")
 # Global dictionary to store user states
 USER_STATES = {}
+USER_MESSAGE_HISTORY = {}
 
 
 def add_user(user_id):
@@ -354,11 +355,17 @@ async def handle_room_number(message: types.Message):
     USER_STATES[message.from_user.id] = None
 
 
+find_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+find_keyboard.row("Кушать", "Учиться")
+find_keyboard.row("Назад")
+
+
 @dp.message_handler(lambda message: message.text == "Найти🔍")
 async def handle_find_room(message: types.Message):
     await bot.send_message(
         message.from_user.id,
-        "Введите номер или название кабинета, который вы хотите найти.\n\nТак же можете написать 'покушать' или 'учиться' и узнать где можно покушать/поучиться",
+        "Введите номер или название кабинета, который вы хотите найти.\n\nМожно узнать места где рядом можно покушать или же поучиться",
+        reply_markup=find_keyboard,
     )
     USER_STATES[message.from_user.id] = "for_room_number"
 
@@ -520,17 +527,17 @@ async def handle_room_number(message: types.Message):
         with open(map_path, "rb") as photo:
             await bot.send_photo(message.from_user.id, photo)
         found = True
-    elif message.text.lower() == "покушать":
+    elif message.text.lower() == "кушать":
         await bot.send_message(
             message.from_user.id,
-            "Столовка находится на 0 этаже Толе Би. Купить перекус на 0, 1, 3 этаже Толе би так же на 1 этаже Абылайхана. Еще рядом с универом есть много заведении где можно покушать.",
+            "Столовка находится на 0 этаже Толе Би. Купить перекус на 0, 1, 3 этаже Толе би так же на 1 этаже Абылайхана. Еще рядом с универом есть много заведении где можно покушать.",reply_markup=main_keyboard
         )
         found = True
 
     elif message.text.lower() == "учиться":
         await bot.send_message(
             message.from_user.id,
-            "",
+            "",reply_markup=main_keyboard
         )
         found = True
     elif message.text.lower() in [
