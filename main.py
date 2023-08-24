@@ -6,6 +6,7 @@ import aiocron
 import openai
 import pymongo
 from aiogram import Bot, Dispatcher, types
+from aiogram.dispatcher import Dispatcher
 from aiogram.types import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils import executor
 from dotenv import load_dotenv
@@ -34,7 +35,7 @@ dp = Dispatcher(bot)
 main_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 main_keyboard.row("Карта🗺️", "РУП ШИТиИ📚")
 main_keyboard.row("Где Я?🫣", "Найти🔍", "ChatGPT🤖")
-main_keyboard.add("Жалобы/Предложения📥")
+main_keyboard.row("Жалобы/Предложения📥", "Контакты💬")
 # Global dictionary to store user states
 USER_STATES = {}
 USER_MESSAGE_HISTORY = {}
@@ -129,6 +130,13 @@ async def handle_button1(message: types.Message):
     # Close the files after sending
     for item in media:
         item.media.close()
+
+
+@dp.message_handler(lambda message: message.text == "Контакты💬")
+async def handle_button1(message: types.Message):
+    response_text = f"🔒 Логин и пароль – Helpingstudents@kbtu.kz\n\n 📞 Контакты:\n- Расписание (Офис Регистратора): 8 727 357 42 81, d.fazylova@kbtu.kz\n- Библиотека: 8 727 357 42 84 (вн. 241), u.bafubaeva@kbtu.kz\n- Общежитие: 8 727 357 42 42 (вн. 601), m.shopanov@kbtu.kz, a.esimbekova@kbtu.kz\n- Оплата обучения: 8 727 357 42 58 (вн. 163, 169) a.nauruzbaeva@kbtu.kz, m.aitakyn@kbtu.kz\n- Мед. центр - medcenter@kbtu.kz\n\n🏫 Деканаты:\n- Бизнес школа: 8 727 357 42 67 (вн. 352, 358), e.mukashev@kbtu.kz, a.yerdebayeva@kbtu.kz\n- Международная школа экономики: 8 727 357 42 71 (вн. 383), a.islyami@kbtu.kz, d.bisenbaeva@kbtu.kz\n- Школа информационных технологий и инженерии: 8 727 357 42 20, fit_1course@kbtu.kz\n- Школа прикладной математики: 8 727 357 42 25, a.isakhov@kbtu.kz, n.eren@kbtu.kz\n- Школа энергетики и нефтегазовой индустрии: 8 727 357 42 42 (вн. 324), a.ismailov@kbtu.kz, a.abdukarimov@kbtu.kz\n- Школа геологии: 8 727 357 42 42 (вн. 326), a.akhmetzhanov@kbtu.kz, g.ulkhanova@kbtu.kz\n- Казахстанская морская академия: 8 727 357 42 27 (вн. 390, 392), r.biktashev@kbtu.kz, s.dlimbetova@kbtu.kz\n- Школа химической инженерии: 8 727 291 57 84, +8 727 357 42 42 (вн. 492), k.dzhamansarieva@kbtu.kz, n.saparbaeva@kbtu.kz\n- Лаборатория альтернативной энергетики и нанотехнологий: 8 727 357 42 66 (вн. 550), n.beisenkhanov@kbtu.kz, z.bugybai@kbtu.kz\n"
+
+    await bot.send_message(message.chat.id, response_text)
 
 
 @dp.message_handler(lambda message: message.text == "Жалобы/Предложения📥")
@@ -530,14 +538,16 @@ async def handle_room_number(message: types.Message):
     elif message.text.lower() == "кушать":
         await bot.send_message(
             message.from_user.id,
-            "Столовка находится на 0 этаже Толе Би. Купить перекус на 0, 1, 3 этаже Толе би так же на 1 этаже Абылайхана. Еще рядом с универом есть много заведении где можно покушать.",reply_markup=main_keyboard
+            "Столовка находится на 0 этаже Толе Би. Купить перекус на 0, 1, 3 этаже Толе би так же на 1 этаже Абылайхана. Еще рядом с универом есть много заведении где можно покушать.",
+            reply_markup=main_keyboard,
         )
         found = True
 
     elif message.text.lower() == "учиться":
         await bot.send_message(
             message.from_user.id,
-            "",reply_markup=main_keyboard
+            "Пока я не знаю где можно учиться",
+            reply_markup=main_keyboard,
         )
         found = True
     elif message.text.lower() in [
