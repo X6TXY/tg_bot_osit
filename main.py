@@ -61,7 +61,7 @@ async def ask_openai(question):
     return response.choices[0].message["content"].strip()
 
 
-@aiocron.crontab("0 9 * * *")  # Это означает каждый день в 23:02
+@aiocron.crontab("0 3 * * *")  # Это означает каждый день в 23:02
 async def send_daily_quote():
     # Вам нужно получить список всех пользователей из вашей базы данных
     users = user_manager.get_all_users()
