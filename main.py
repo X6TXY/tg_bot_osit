@@ -11,6 +11,8 @@ from aiogram.types import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils import executor
 from dotenv import load_dotenv
 
+from UserInteractionHandler.UserInteractionHandler import UserInteractionHandler
+
 load_dotenv()
 
 
@@ -40,31 +42,9 @@ main_keyboard.row("Жалобы/Предложения📥", "Контакты�
 USER_STATES = {}
 USER_MESSAGE_HISTORY = {}
 
-
-def add_user(user_id):
-    user = {"_id": user_id}
-    try:
-        users_collection.insert_one(user)
-    except:
-        # Если пользователь уже существует, игнорируем ошибку
-        pass
-
-
-# Функция для получения всех пользователей
-def get_all_users():
-    return [user["_id"] for user in users_collection.find({}, {"_id": 1})]
-
-
-def send_main_keyboard(user_id, message="Выберите опцию:"):
-    return bot.send_message(user_id, message, reply_markup=main_keyboard)
-
-
-def save_feedback(user_id, text):
-    feedback_document = {
-        "user_id": user_id,
-        "text": text,
-    }
-    feedback_collection.insert_one(feedback_document)
+user_manager = UserInteractionHandler(
+    users_collection, feedback_collection, bot, main_keyboard
+)
 
 
 async def ask_openai(question):
@@ -84,7 +64,7 @@ async def ask_openai(question):
 @aiocron.crontab("0 9 * * *")  # Это означает каждый день в 23:02
 async def send_daily_quote():
     # Вам нужно получить список всех пользователей из вашей базы данных
-    users = get_all_users()
+    users = user_manager.get_all_users()
 
     # Генерируем мотивационную цитату с помощью OpenAI
     prompt = "Сначала пожелай доброго утро от лица бота GUIDeon. Потом напиши мотивационную цитат на 100 символов"
@@ -96,7 +76,7 @@ async def send_daily_quote():
 
 @dp.message_handler(commands=["start"])
 async def send_welcome(message: types.Message):
-    add_user(message.from_user.id)
+    user_manager.add_user(message.from_user.id)
     first_name = message.from_user.first_name
     welcome_msg = (
         f"Привет, {first_name}! \n\n"
@@ -150,7 +130,7 @@ async def handle_feedback(message: types.Message):
 
 @dp.message_handler(lambda message: USER_STATES.get(message.from_user.id) == "feedback")
 async def feedback(message: types.Message):
-    save_feedback(message.from_user.id, message.text)
+    user_manager.save_feedback(message.from_user.id, message.text)
     await bot.send_message(message.from_user.id, "Спасибо за ваше сообщение!")
     USER_STATES[message.from_user.id] = None
 
@@ -190,13 +170,13 @@ async def handle_rup_options(message: types.Message):
         await bot.send_document(message.from_user.id, file)
 
     # Return to the main keyboard after handling the RUP option
-    await send_main_keyboard(message.from_user.id)
+    await user_manager.send_main_keyboard(message.from_user.id)
 
 
 @dp.message_handler(lambda message: message.text == "Назад")
 async def handle_back_button(message: types.Message):
     # Return to the main keyboard
-    await send_main_keyboard(message.from_user.id)
+    await user_manager.send_main_keyboard(message.from_user.id)
 
 
 @dp.message_handler(lambda message: message.text == "Где Я?🫣")
