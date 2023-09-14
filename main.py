@@ -74,6 +74,15 @@ async def send_daily_quote():
         await bot.send_message(user_id, response)
 
 
+@aiocron.crontab("0 10 * * *")  # Это означает каждый день в 23:02
+async def send_daily():
+    # Вам нужно получить список всех пользователей из вашей базы данных
+    users = user_manager.get_all_users()
+
+    for user_id in users:
+        await bot.send_message(user_id, "GUIDeon голосует за Алтынай!")
+
+
 @dp.message_handler(commands=["start"])
 async def send_welcome(message: types.Message):
     user_manager.add_user(message.from_user.id)
