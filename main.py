@@ -6,6 +6,7 @@ import aiocron
 import openai
 import pymongo
 from aiogram import Bot, Dispatcher, types
+from aiogram.dispatcher import Dispatcher
 from aiogram.types import InputMediaPhoto, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils import executor
 from dotenv import load_dotenv
@@ -71,15 +72,6 @@ async def send_daily_quote():
 
     for user_id in users:
         await bot.send_message(user_id, response)
-
-
-@aiocron.crontab("0 8 * * *")  # Это означает каждый день в 23:02
-async def send_daily_quote():
-    # Вам нужно получить список всех пользователей из вашей базы данных
-    users = user_manager.get_all_users()
-
-    for user_id in users:
-        await bot.send_message(user_id, "GUIDeonBOT за Алтынай!!!🤩🤩")
 
 
 @dp.message_handler(commands=["start"])
