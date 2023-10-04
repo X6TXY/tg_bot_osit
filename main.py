@@ -116,9 +116,11 @@ async def handle_button1(message: types.Message):
 
     await bot.send_media_group(message.from_user.id, media)
 
-    # Close the files after sending
     for item in media:
-        item.media.close()
+        try:
+            item.media.close()  # Close the media attribute (assuming it's a file-like object)
+        except Exception as e:
+            print(f"Error closing media: {e}")
 
 
 @dp.message_handler(lambda message: message.text == "Контакты💬")
